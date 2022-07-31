@@ -15,10 +15,17 @@ setpoint_queue = collections.deque([0,0], maxlen = 2)
 k1 = 0
 k2 = 0
 t_ramp_min = 1
+loop_counter = 0
+POWER_CHECK_COUNTER = 30
+ARDUINO_ANALOG_CHANNEL = 1
+LINE_VOLTAGE_THRESHOLD = 10
+
 
 while stop != True:
 
     t0 = time.time()*1000
+
+    loop_counter += 1
 
     ####################################################
     if main_queue[0] == 'Init':
@@ -63,7 +70,12 @@ while stop != True:
             PID = pidcontrol.PIDClass(coefs_tup, setpoint_queue[0], range_tup,
                                       integration_samples=ini.integration_samples ,
                                       diff_filter_samples=ini.diff_filter_samples )
-            arduino = proc.ArduinoClass(port = ini.port, d_channel = ini.d_channel)
+            arduino = proc.ArduinoClass(port = ini.port, main_heater_channel=ini.d_channel,
+                                        aux_heater_channel=ini.aux_channel, analog_channel=ini.analog_channel)
+            print('Wait for initialization...')
+            time.sleep(5)
+            arduino.aux_relay_on()
+            print('StartUP done. AUX relay on')
             start_up = False
         else:
             PID.set_coefs(coefs_tup)
@@ -133,6 +145,16 @@ while stop != True:
     else:
         pass
 
+    # measure the voltage in the main power line
+    if loop_counter >= POWER_CHECK_COUNTER:
+        line_voltage = arduino.read_line_voltage(ARDUINO_ANALOG_CHANNEL)
+        if line_voltage < LINE_VOLTAGE_THRESHOLD:
+            arduino.aux_relay_off()
+            stop = True
+            print('Line voltage is below the threshold. AUX relay off. Controller stops')
+            print(time.localtime())
+        else:
+            loop_counter = 0
 
     k3 = cv2.waitKey(1)
 

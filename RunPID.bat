@@ -1,0 +1,1 @@
+C:\Users\shust\anaconda3-2021-11\envs\PID_TEMP_Env\python.exe C:\Users\shust\Documents\PYTHON\PID_TEMP\test.py

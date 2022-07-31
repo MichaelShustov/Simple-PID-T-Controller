@@ -10,14 +10,6 @@ int pinState = LOW;
 int chan;
 int state;
 
-int analogPin0 = A0; // analog ports to check the line voltage
-int analogPin1 = A1;
-int analogPin2 = A2;
-int analogPin3 = A3;
-int analogPin4 = A4;
-int analogPin5 = A5;
-int analogVal = 0;  // variable to store the value read
-
 
 void setup() {
   pinMode(2, OUTPUT);
@@ -35,9 +27,6 @@ void setup() {
   digitalWrite(6, LOW);
   digitalWrite(7, LOW);
   digitalWrite(12, LOW);
-
-  pinMode(13, OUTPUT);
-  digitalWrite(13, LOW);
 
   // Open the serial connection, 9600 baud
   Serial.begin(9600);

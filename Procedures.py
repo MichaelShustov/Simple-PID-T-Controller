@@ -4,6 +4,7 @@ import pyvisa
 import serial
 import array
 import configparser
+import time
 
 
 class ini_file():
@@ -23,10 +24,12 @@ class ini_file():
 
 class ArduinoClass():
 
-    def __init__(self, port = 'COM5', d_channel = 2):
+    def __init__(self, port = 'COM5', main_heater_channel=2, aux_heater_channel=8, analog_channel=1):
 
         self.usbport = port
-        self.channel = d_channel
+        self.main_channel = main_heater_channel
+        self.aux_channel = aux_heater_channel
+        self.analog_channel = analog_channel
 
         # initialize serial port
         self.ser = serial.Serial(self.usbport, 9600, timeout=1)
@@ -34,11 +37,41 @@ class ArduinoClass():
         self.heater_off()
 
     def heater_off(self):
-        ar = array.array('B', [254, self.channel, 0]).tobytes()
+        ar = array.array('B', [254, self.main_channel, 0]).tobytes()
         self.ser.write(ar)
 
     def heater_on(self):
-        ar = array.array('B', [254, self.channel, 1]).tobytes()
+        ar = array.array('B', [254, self.main_channel, 1]).tobytes()
+        self.ser.write(ar)
+
+    def read_line_voltage(self):
+        """
+        Reads value (voltage) on analog pin of arduino
+        :param analog_channel_number: number from 0-5
+        :return: value from analog channel (in relative units of arduino)
+        """
+
+        ar = array.array('B', [252, self.analog_channel, 0]).tobytes()
+        self.ser.write(ar)
+        time.sleep(3)
+        read_val = self.ser.read(100)
+        print(read_val)
+        return read_val.decode()
+
+    def aux_relay_off(self):
+        """
+        Turns off the aux-relay
+        :return:
+        """
+        ar = array.array('B', [254, self.aux_channel, 0]).tobytes()
+        self.ser.write(ar)
+
+    def aux_relay_on(self):
+        """
+        Turns on the aux-relay
+        :return:
+        """
+        ar = array.array('B', [254, self.aux_channel, 1]).tobytes()
         self.ser.write(ar)
 
     def close_serial(self):
